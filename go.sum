@@ -1,0 +1,5 @@
+github.com/qaqcatz/adclib v1.0.0 h1:pdN73b8rMoMvtNt86Yt3/B0toE8JyvP0yxcZlDQmWtc=
+github.com/qaqcatz/adclib v1.0.0/go.mod h1:Rd1spSURuk7JyqtFjChqp0aUcINkErZ2+4bg8Zk78yg=
+github.com/qaqcatz/nanoshlib v1.0.0/go.mod h1:zdS9l3LMQ/u/+of8UhcTYpScumBJrh+qB+45RnRVXII=
+github.com/qaqcatz/nanoshlib v1.2.0 h1:Jars6sST2JnOIFT7McHgUF7WLFVr8/LwlCjnHrP/irY=
+github.com/qaqcatz/nanoshlib v1.2.0/go.mod h1:LNsj5W9vrCrmW5Wh6q64mBCqSFR7QWzokHpx+X/S7CM=
