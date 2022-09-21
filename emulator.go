@@ -4,11 +4,12 @@ import (
 	"errors"
 	"github.com/qaqcatz/adclib"
 	"github.com/qaqcatz/nanoshlib"
+	"strconv"
 	"strings"
 	"time"
 )
 
-// AEmu: emulator -avd AvdName -port Port ExtraParam
+// AEmu: emulator -avd AvdName -port Port ExtraParam.
 type AEmu struct {
 	EmulatorPath string 	  // e.g /home/hzy/Android/Sdk/emulator/emulator
 	AvdName      string       // avd name. see it from emulator -list-avds or ls ~/.android/avd
@@ -51,7 +52,7 @@ func (aemu *AEmu) Exec(cmdStr string, timoutMs int) ([]byte, []byte, error, bool
 // 	hzy        87319   85954  0 19:55 pts/4    00:00:00 grep -e /emulator/qemu/.*test
 //	output:
 //  86288
-// return (pid or "", error or nil).
+// Return (pid, nil) or ("", error: ps -ef error or pid is not number).
 // May wait 1s.
 func (aemu *AEmu) GetPid() (string, error) {
 	outStream, _, err := nanoshlib.Exec("ps -ef | grep -e /emulator/qemu/.*"+aemu.AvdName+
@@ -59,7 +60,12 @@ func (aemu *AEmu) GetPid() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strings.TrimSpace(string(outStream)), nil
+	pid := strings.TrimSpace(string(outStream))
+	_, err = strconv.Atoi(pid)
+	if err != nil {
+		return "", errors.New("pid is not number: " + err.Error())
+	}
+	return pid, nil
 }
 
 // Kill: kill -9 GetPid().
@@ -121,7 +127,52 @@ func (aemu *AEmu) Restart(timeoutMs int) error {
 			ok = res
 		}
 		if err != nil {
+			return errors.New("emulator restart error: " + err.Error())
+		}
+		_, err = aemu.GetPid()
+		if err != nil {
+			return errors.New("emulator restart error: can not find the process: " + err.Error())
+		}
+		if ok {
+			break
+		}
+	}
+	// 4. sleep 3s
+	// After startup, some settings-related activities may be run first, so wait for a while
+	time.Sleep(3*time.Second)
+	return nil
+}
+
+// RestartE is an extension of Restart, it will restart the emulator with extraParam
+func (aemu *AEmu) RestartE(extraParam string, timeoutMs int) error {
+	// 1. kill
+	_ = aemu.Kill()
+	// 2. emulator -avd AvdName -port Port ExtraParam
+	doneChan, _, err := nanoshlib.Exec0s(aemu.EmulatorPath+" -avd "+aemu.AvdName+" -port "+aemu.Port+" "+extraParam)
+	if err != nil {
+		return errors.New("emulator restart error: " + err.Error())
+	}
+	// 3. wait for any resumed activity or start error or timeout
+	timeout := time.After(time.Duration(timeoutMs) * time.Millisecond)
+	hra := make(chan bool)
+	ok := false
+	err = nil
+	for {
+		go func() { time.Sleep(3*time.Second); hra <- aemu.hasResumedActivity() }()
+		select {
+		case err_ := <-doneChan:
+			err = err_
+		case <-timeout:
+			err = errors.New("timeout")
+		case res := <-hra:
+			ok = res
+		}
+		if err != nil {
 			return err
+		}
+		_, err = aemu.GetPid()
+		if err != nil {
+			return errors.New("emulator restart error: can not find the process: " + err.Error())
 		}
 		if ok {
 			break

@@ -85,6 +85,29 @@ func ExampleAEmu_Restart() {
 }
 ```
 
+### RestartE
+
+```golang
+func (aemu *AEmu) RestartE(extraParam string, timeoutMs int) error
+```
+
+RestartE is an extension of Restart, it will restart the emulator with extraParam
+
+```golang
+func ExampleAEmu_RestartE() {
+	// emulator -avd test first
+	aemu := NewAEmu("/home/hzy/Android/Sdk/emulator/emulator",
+		"test", "5556", "-wipe-data",
+		"/home/hzy/Android/Sdk/platform-tools/adb", "0")
+	err := aemu.RestartE("",90000)
+	if err != nil {
+		log.Fatal("error: " + err.Error())
+	} else {
+		log.Println("ok!")
+	}
+}
+```
+
 ### Kill
 
 ```golang
@@ -110,5 +133,5 @@ example:
  86288
 ```
 
-return (pid or "", error or nil). May wait 1s.
+Return (pid, nil) or ("", error: ps -ef error or pid is not number). May wait 1s.
 
