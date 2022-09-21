@@ -1,4 +1,6 @@
 # aemulib
+[![Go Reference](README.assets/aemulib.svg)](https://pkg.go.dev/github.com/qaqcatz/aemulib)
+
 aemulib is responsible for managing the startup and shutdown of the android emulator, as well as communicating with the emulator.
 
 adclib (https://github.com/qaqcatz/adclib) provide stable communication interfaces to android device.
@@ -18,7 +20,7 @@ For more convenience, aemulib also encapsulates adclib to communicate with the e
 
 ```golang
 // go.mod
-require github.com/qaqcatz/aemulib v1.0.0
+require github.com/qaqcatz/aemulib v1.1.0
 // xxx.go
 import "github.com/qaqcatz/aemulib"
 ```
